@@ -73,11 +73,22 @@ func getDSN() string {
 // CORS middleware
 func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		/*
+		   cors.New(cors.Config{
+		   AllowOrigins:     []string{"*"},
+		   AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		   AllowHeaders:     []string{"*"},
+		   ExposeHeaders:    []string{"*"},
+		   AllowCredentials: true,
+		   AllowOriginFunc: func(origin string) bool {
+		       return origin == "*"
+		   }
+		*/
+
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Server", "Kestrel")
-		w.Header().Set("Transfer-Encoding", "chunked")
+		w.Header().Set("AllowCredentials", "true")
 
 		// Если это preflight-запрос, возвращаем 200 OK
 		if r.Method == http.MethodOptions {
@@ -131,7 +142,6 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors)
-
 	// Define routes
 	r.Post("/potatoes/create", createPotato)
 	r.Get("/potatoes/{id}", getPotatoByID)
@@ -173,7 +183,6 @@ func createPotato(w http.ResponseWriter, r *http.Request) {
 
 	db.Save(&potato)
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(potato)
 }
 
@@ -186,8 +195,6 @@ func getPotatoByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the potato as JSON
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(potato)
 }
 
@@ -201,7 +208,5 @@ func getAllPotatoes(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(r.RemoteAddr)
 
-	// Return all potatoes as JSON
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(potatoes)
 }
