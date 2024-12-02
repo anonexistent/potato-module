@@ -70,6 +70,23 @@ func getDSN() string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, port)
 }
 
+// CORS middleware
+func cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Если это preflight-запрос, возвращаем 200 OK
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	if os.Getenv("MODE") != "prod" {
 		// Загружаем переменные окружения из файла Development.env
@@ -111,6 +128,7 @@ func main() {
 	// Initialize the router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(cors)
 
 	// Define routes
 	r.Post("/potatoes/create", createPotato)
