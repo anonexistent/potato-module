@@ -13,6 +13,8 @@ services:
       - DB_NAME=potato-module-db
       - DB_PORT=5432
       - MODE=prod
+    networks:
+      - mynetwork
 
   db:    
     container_name: golang-postgres-db
@@ -25,6 +27,8 @@ services:
       - ":5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
 
 volumes:
   postgres_data:
