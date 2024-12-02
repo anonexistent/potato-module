@@ -76,6 +76,8 @@ func cors(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Server", "Kestrel")
+		w.Header().Set("Transfer-Encoding", "chunked")
 
 		// Если это preflight-запрос, возвращаем 200 OK
 		if r.Method == http.MethodOptions {
