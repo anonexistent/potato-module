@@ -172,8 +172,6 @@ func createPotato(w http.ResponseWriter, r *http.Request) {
 	db.Save(&potato)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	json.NewEncoder(w).Encode(potato)
 }
 
@@ -203,7 +201,5 @@ func getAllPotatoes(w http.ResponseWriter, r *http.Request) {
 
 	// Return all potatoes as JSON
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	json.NewEncoder(w).Encode(potatoes)
 }
