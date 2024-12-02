@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -71,20 +72,8 @@ func getDSN() string {
 }
 
 // CORS middleware
-func cors(next http.Handler) http.Handler {
+func cors2(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		/*
-		   cors.New(cors.Config{
-		   AllowOrigins:     []string{"*"},
-		   AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
-		   AllowHeaders:     []string{"*"},
-		   ExposeHeaders:    []string{"*"},
-		   AllowCredentials: true,
-		   AllowOriginFunc: func(origin string) bool {
-		       return origin == "*"
-		   }
-		*/
-
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -141,7 +130,18 @@ func main() {
 	// Initialize the router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Use(cors)
+	r.Use(cors2)
+
+	// Настройка CORS
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	// Define routes
 	r.Post("/potatoes/create", createPotato)
 	r.Get("/potatoes/{id}", getPotatoByID)
