@@ -74,6 +74,7 @@ func getDSN() string {
 func main() {
 	if os.Getenv("MODE") != "prod" {
 		// Загружаем переменные окружения из файла Development.env
+		//
 		err := godotenv.Load("Development.env")
 		if err != nil {
 			log.Fatalf("Error loading .env file: %v", err)
