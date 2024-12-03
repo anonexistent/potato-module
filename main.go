@@ -20,7 +20,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Size represents the size of potato
+// Size represents the size of potatoo
 type Size struct {
 	ID      uint             `json:"id" gorm:"primaryKey"`
 	Name    string           `json:"name"`
