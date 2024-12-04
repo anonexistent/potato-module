@@ -123,7 +123,8 @@ func main() {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+
+		MaxAge: 300, // Maximum value not ignored by any of major browsers
 	}))
 
 	// Обработчик для OPTIONS-запросов
@@ -172,6 +173,7 @@ func createPotato(w http.ResponseWriter, r *http.Request) {
 
 	db.Save(&potato)
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(potato)
 }
 
@@ -184,6 +186,7 @@ func getPotatoByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(potato)
 }
 
@@ -196,5 +199,6 @@ func getAllPotatoes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(potatoes)
 }
