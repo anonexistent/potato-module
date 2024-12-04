@@ -112,16 +112,20 @@ func main() {
 
 	// Initialize the router
 	r := chi.NewRouter()
-
+	r.Use(middleware.Logger)
+	// Настройка CORS
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
 
-	r.Use(middleware.Logger)
+	// Обработчик для OPTIONS-запросов
+	r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	// Define routes
 	r.Post("/potatoes/create", createPotato)
