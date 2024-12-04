@@ -114,7 +114,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Разрешить все домены
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
@@ -181,6 +181,8 @@ func getPotatoByID(w http.ResponseWriter, r *http.Request) {
 
 // getAllPotatoes handles fetching all potatoes
 func getAllPotatoes(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	var potatoes []models.Potato
 	if err := db.Preload("Types").Preload("Sizes").Find(&potatoes).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
