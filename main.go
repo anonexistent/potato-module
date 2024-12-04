@@ -113,13 +113,17 @@ func main() {
 	// Initialize the router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	// Настройка CORS
+	// Basic CORS
+	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		AllowCredentials: true,
-		MaxAge:           300,
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
 	// Обработчик для OPTIONS-запросов
@@ -185,15 +189,12 @@ func getPotatoByID(w http.ResponseWriter, r *http.Request) {
 
 // getAllPotatoes handles fetching all potatoes
 func getAllPotatoes(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	var potatoes []models.Potato
 	if err := db.Preload("Types").Preload("Sizes").Find(&potatoes).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println(r.RemoteAddr)
 
 	json.NewEncoder(w).Encode(potatoes)
 }
