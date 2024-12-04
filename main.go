@@ -112,7 +112,6 @@ func main() {
 
 	// Initialize the router
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"}, // Разрешить все домены
@@ -121,6 +120,8 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+
+	r.Use(middleware.Logger)
 
 	// Define routes
 	r.Post("/potatoes/create", createPotato)
