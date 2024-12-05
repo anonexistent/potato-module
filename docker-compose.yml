@@ -3,7 +3,7 @@ services:
     container_name: golang-api
     build: .
     ports:
-      - "8080:8080"
+      - "54870:54870"
     depends_on:
       - db
     environment:
