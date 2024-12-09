@@ -14,8 +14,9 @@ type Potato struct {
 	Sizes []Size    `json:"sizes" gorm:"many2many:potato_sizes;"`
 }
 
-// BeforeCreate будет вызываться перед созданием записи
 func (p *Potato) BeforeCreate(tx *gorm.DB) (err error) {
-	p.ID = uuid.New() // Генерируем новый UUID
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
+	}
 	return
 }

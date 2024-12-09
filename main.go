@@ -81,9 +81,9 @@ func main() {
 		log.Fatal("failed to connect database")
 	}
 
-	// Migrate the schema
+	// Автоматически мигрировать схему
 	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}); err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
+		panic(fmt.Sprintln("Error during migration: %v\n", err))
 	}
 
 	// for release
