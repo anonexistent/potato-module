@@ -6,10 +6,9 @@ import (
 )
 
 type Type struct {
-	gorm.Model
 	ID      uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	Name    string    `json:"name"`
-	Potatos []*Potato `gorm:"many2many:potato_types;"`
+	Potatos []Potato  `gorm:"many2many:potato_types;"`
 }
 
 // BeforeCreate будет вызываться перед созданием записи

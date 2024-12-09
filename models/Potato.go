@@ -6,7 +6,6 @@ import (
 )
 
 type Potato struct {
-	gorm.Model
 	ID    uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	Img   string    `json:"img"`
 	Price uint      `json:"price"`
