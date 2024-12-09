@@ -131,8 +131,10 @@ func main() {
 	r.Get("/potatoes/{id}", ss.GetPotatoByID)
 	r.Get("/potatoes/list", ss.GetAllPotatoes)
 
+	r.Post("/sizes/create", ss.CreateSize)
 	r.Get("/sizes/list", ss.GetAllSizes)
 
+	r.Post("/types/create", ss.CreateType)
 	r.Get("/types/list", ss.GetAllTypes)
 
 	// Start the server
