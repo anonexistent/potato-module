@@ -8,12 +8,7 @@ import (
 	"potato-module/models"
 
 	"github.com/go-chi/chi"
-	"gorm.io/gorm"
 )
-
-type Services struct {
-	DB *gorm.DB
-}
 
 // CreatePotato handles the creation of a new potato
 func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {

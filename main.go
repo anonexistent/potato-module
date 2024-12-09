@@ -124,12 +124,16 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	var potatoService = &services.Services{DB: db}
+	var ss = &services.Services{DB: db}
 
 	// Define routes
-	r.Post("/potatoes/create", potatoService.CreatePotato)
-	r.Get("/potatoes/{id}", potatoService.GetPotatoByID)
-	r.Get("/potatoes/list", potatoService.GetAllPotatoes)
+	r.Post("/potatoes/create", ss.CreatePotato)
+	r.Get("/potatoes/{id}", ss.GetPotatoByID)
+	r.Get("/potatoes/list", ss.GetAllPotatoes)
+
+	r.Get("/sizes/list", ss.GetAllSizes)
+
+	r.Get("/types/list", ss.GetAllTypes)
 
 	// Start the server
 	log.Println("Starting server on :54870")
