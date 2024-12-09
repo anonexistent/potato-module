@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"potato-module/models"
+	"potato-module/services"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,17 +27,9 @@ type Size struct {
 	Potatos []*models.Potato `gorm:"many2many:potato_sizes;"`
 }
 
-// CreatePotatoBody represents the input structure for creating a potato
-type CreatePotatoBody struct {
-	Img   string `json:"img"`
-	Price uint   `json:"price"`
-	Title string `json:"title"`
-	Types []uint `json:"types"`
-	Sizes []uint `json:"sizes"`
-}
-
 var db *gorm.DB
 
+// old
 func initializeData() {
 	// Инициализация типов картошки
 	types := []models.Type{
@@ -81,24 +73,10 @@ func main() {
 		}
 	}
 
-	// Подключаемся к PostgreSQL без указания базы данных
-	connStr := "host=localhost user=postgres password=sa port=5432 sslmode=disable"
-	temp_db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("failed to connect to PostgreSQL: %v", err)
-	}
-
-	// Создаем базу данных, если она не существует
-	_, err = temp_db.Exec("CREATE DATABASE \"potato-module-db\"")
-	if err != nil {
-		fmt.Printf("Error creating database: %v\n", err)
-	} else {
-		fmt.Println("Database created successfully")
-	}
-	temp_db.Close()
+	ensureCreated()
 
 	dsn := getDSN()
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database")
 	}
@@ -108,7 +86,21 @@ func main() {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
 
-	initializeData()
+	// for release
+	// // Получаем список всех таблиц
+	// tables, err := db.Migrator().GetTables()
+	// if err != nil {
+	// 	log.Fatalf("failed to get tables: %v", err)
+	// }
+	// // Удаляем данные из каждой таблицы
+	// for _, table := range tables {
+	// 	if err := db.Exec("DELETE FROM " + table).Error; err != nil {
+	// 		log.Printf("failed to clear table %s: %v", table, err)
+	// 	} else {
+	// 		log.Printf("cleared table %s", table)
+	// 	}
+	// }
+	// initializeData()
 
 	// Initialize the router
 	r := chi.NewRouter()
@@ -132,10 +124,12 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	var potatoService = &services.Services{DB: db}
+
 	// Define routes
-	r.Post("/potatoes/create", createPotato)
-	r.Get("/potatoes/{id}", getPotatoByID)
-	r.Get("/potatoes/list", getAllPotatoes)
+	r.Post("/potatoes/create", potatoService.CreatePotato)
+	r.Get("/potatoes/{id}", potatoService.GetPotatoByID)
+	r.Get("/potatoes/list", potatoService.GetAllPotatoes)
 
 	// Start the server
 	log.Println("Starting server on :54870")
@@ -144,61 +138,20 @@ func main() {
 	}
 }
 
-// createPotato handles the creation of a new potato
-func createPotato(w http.ResponseWriter, r *http.Request) {
-	var input CreatePotatoBody
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+func ensureCreated() {
+	// Подключаемся к PostgreSQL без указания базы данных
+	connStr := "host=localhost user=postgres password=sa port=5432 sslmode=disable"
+	temp_db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("failed to connect to PostgreSQL: %v", err)
 	}
 
-	var potato = models.Potato{
-		Price: input.Price,
-		Title: input.Title,
-		Img:   input.Img,
+	// Создаем базу данных, если она не существует
+	_, err = temp_db.Exec("CREATE DATABASE \"potato-module-db\"")
+	if err != nil {
+		fmt.Printf("Error creating database: %v\n", err)
+	} else {
+		fmt.Println("Database created successfully")
 	}
-
-	result := db.Create(&potato)
-	if result.Error != nil {
-		panic(result.Error.Error())
-	}
-
-	var s []models.Size
-	var t []models.Type
-	db.Where("id in ?", input.Sizes).Find(&s)
-	db.Where("id in ?", input.Types).Find(&t)
-
-	potato.Sizes = s
-	potato.Types = t
-
-	db.Save(&potato)
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(potato)
-}
-
-// getPotatoByID handles fetching a potato by its ID
-func getPotatoByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	var potato models.Potato
-	if err := db.Preload("Types").Preload("Sizes").First(&potato, id).Error; err != nil {
-		http.Error(w, "Potato not found", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(potato)
-}
-
-// getAllPotatoes handles fetching all potatoes
-func getAllPotatoes(w http.ResponseWriter, r *http.Request) {
-
-	var potatoes []models.Potato
-	if err := db.Preload("Types").Preload("Sizes").Find(&potatoes).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(potatoes)
+	temp_db.Close()
 }

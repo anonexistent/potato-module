@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/go-chi/cors v1.2.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 )
 
@@ -22,6 +23,7 @@ require (
 	github.com/creack/pty v1.1.23 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/go-chi/chi v1.5.5
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gohugoio/hugo v0.134.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
