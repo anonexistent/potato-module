@@ -82,7 +82,7 @@ func main() {
 	}
 
 	// Автоматически мигрировать схему
-	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}); err != nil {
+	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}, &models.Category{}); err != nil {
 		panic(fmt.Sprintln("Error during migration: %v\n", err))
 	}
 
@@ -136,6 +136,9 @@ func main() {
 
 	r.Post("/types/create", ss.CreateType)
 	r.Get("/types/list", ss.GetAllTypes)
+
+	r.Post("/categories/create", ss.CreateCategory)
+	r.Get("/categories/list", ss.GetAllCategories)
 
 	// Start the server
 	log.Println("Starting server on :54870")

@@ -20,6 +20,7 @@ func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {
 
 	var sizes []models.Size
 	var types []models.Type
+	var cats []models.Category
 
 	if err := s.DB.Where("id IN ?", input.Sizes).Find(&sizes).Error; err != nil {
 		http.Error(w, "Error finding sizes: "+err.Error(), http.StatusBadRequest)
@@ -31,12 +32,19 @@ func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := s.DB.Where("id IN ?", input.Categories).Find(&cats).Error; err != nil {
+		http.Error(w, "Error finding types: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	potato := models.Potato{
-		Price: input.Price,
-		Title: input.Title,
-		Img:   input.Img,
-		Sizes: sizes,
-		Types: types,
+		Price:      input.Price,
+		Title:      input.Title,
+		Img:        input.Img,
+		Rating:     input.Rate,
+		Sizes:      sizes,
+		Types:      types,
+		Categories: cats,
 	}
 
 	if err := s.DB.Create(&potato).Error; err != nil {
