@@ -71,9 +71,31 @@ func (s *Services) GetPotatoByID(w http.ResponseWriter, r *http.Request) {
 
 // GetAllPotatoes handles fetching all potatoes
 func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
+	query := s.DB.Preload("Types").Preload("Sizes").Preload("Categories")
+
+	sortField := r.URL.Query().Get("sort")
+	categoryFilter := r.URL.Query().Get("category")
+
+	// Если указан фильтр по категориям, добавляем его в запрос
+	if categoryFilter != "" {
+		query = query.Joins("JOIN potato_categoris ON potato_categoris.potato_id = potatos.id").
+			Joins("JOIN categories ON categories.id = potato_categoris.category_id").
+			Where("categories.id = ?", categoryFilter)
+	}
+
+	// Если указано поле для сортировки, добавляем его в запрос
+	if sortField != "" {
+		switch sortField {
+		case "Title", "Rating", "Price":
+			query = query.Order(sortField)
+		default:
+			http.Error(w, "Invalid sort field", http.StatusBadRequest)
+			return
+		}
+	}
 
 	var potatoes []models.Potato
-	if err := s.DB.Preload("Types").Preload("Sizes").Find(&potatoes).Error; err != nil {
+	if err := query.Find(&potatoes).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
