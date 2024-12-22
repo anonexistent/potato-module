@@ -21,6 +21,7 @@ func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {
 
 	var sizes []models.Size
 	var types []models.Type
+	var cats []models.Category
 
 	if err := s.DB.Where("id IN ?", input.Sizes).Find(&sizes).Error; err != nil {
 		http.Error(w, "Error finding sizes: "+err.Error(), http.StatusBadRequest)
@@ -32,12 +33,19 @@ func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := s.DB.Where("id IN ?", input.Categories).Find(&cats).Error; err != nil {
+		http.Error(w, "Error finding types: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	potato := models.Potato{
-		Price: input.Price,
-		Title: input.Title,
-		Img:   input.Img,
-		Sizes: sizes,
-		Types: types,
+		Price:      input.Price,
+		Title:      input.Title,
+		Img:        input.Img,
+		Rating:     input.Rate,
+		Sizes:      sizes,
+		Types:      types,
+		Categories: cats,
 	}
 
 	if err := s.DB.Create(&potato).Error; err != nil {
@@ -64,6 +72,28 @@ func (s *Services) GetPotatoByID(w http.ResponseWriter, r *http.Request) {
 
 // GetAllPotatoes handles fetching all potatoes
 func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
+	query := s.DB.Preload("Types").Preload("Sizes").Preload("Categories")
+
+	sortField := r.URL.Query().Get("sort")
+	categoryFilter := r.URL.Query().Get("category")
+
+	// Если указан фильтр по категориям, добавляем его в запрос
+	if categoryFilter != "" {
+		query = query.Joins("JOIN potato_categoris ON potato_categoris.potato_id = potatos.id").
+			Joins("JOIN categories ON categories.id = potato_categoris.category_id").
+			Where("categories.id = ?", categoryFilter)
+	}
+
+	// Если указано поле для сортировки, добавляем его в запрос
+	if sortField != "" {
+		switch sortField {
+		case "Title", "Rating", "Price":
+			query = query.Order(sortField)
+		default:
+			http.Error(w, "Invalid sort field", http.StatusBadRequest)
+			return
+		}
+	}
 	// Получаем параметры пагинации из запроса
 	page := r.URL.Query().Get("page")
 	pageSize := r.URL.Query().Get("pageSize")
@@ -93,6 +123,7 @@ func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
 	offset := (pageInt - 1) * pageSizeInt
 
 	var potatoes []models.Potato
+	if err := query.Find(&potatoes).Error; err != nil {
 	if err := s.DB.Preload("Types").Preload("Sizes").Limit(pageSizeInt).Offset(offset).Find(&potatoes).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
