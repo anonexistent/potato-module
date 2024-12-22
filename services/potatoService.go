@@ -72,18 +72,19 @@ func (s *Services) GetPotatoByID(w http.ResponseWriter, r *http.Request) {
 
 // GetAllPotatoes handles fetching all potatoes
 func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
-	query := s.DB.Preload("Types").Preload("Sizes").Preload("Categories")
+	// Получаем параметры пагинации из запроса
+	page := r.URL.Query().Get("page")
+	pageSize := r.URL.Query().Get("pageSize")
 
+	query := s.DB.Preload("Types").Preload("Sizes").Preload("Categories")
 	sortField := r.URL.Query().Get("sort")
 	categoryFilter := r.URL.Query().Get("category")
-
 	// Если указан фильтр по категориям, добавляем его в запрос
 	if categoryFilter != "" {
 		query = query.Joins("JOIN potato_categoris ON potato_categoris.potato_id = potatos.id").
 			Joins("JOIN categories ON categories.id = potato_categoris.category_id").
 			Where("categories.id = ?", categoryFilter)
 	}
-
 	// Если указано поле для сортировки, добавляем его в запрос
 	if sortField != "" {
 		switch sortField {
@@ -94,9 +95,6 @@ func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// Получаем параметры пагинации из запроса
-	page := r.URL.Query().Get("page")
-	pageSize := r.URL.Query().Get("pageSize")
 
 	// Устанавливаем значения по умолчанию, если параметры не указаны
 	if page == "" {
@@ -122,13 +120,6 @@ func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
 	// Вычисляем смещение
 	offset := (pageInt - 1) * pageSizeInt
 
-	var potatoes []models.Potato
-	if err := query.Find(&potatoes).Error; err != nil {
-	if err := s.DB.Preload("Types").Preload("Sizes").Limit(pageSizeInt).Offset(offset).Find(&potatoes).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	// Подсчитываем общее количество записей
 	var totalRecords int64
 	if err := s.DB.Model(&models.Potato{}).Count(&totalRecords).Error; err != nil {
@@ -138,6 +129,13 @@ func (s *Services) GetAllPotatoes(w http.ResponseWriter, r *http.Request) {
 
 	// Вычисляем общее количество страниц
 	totalPages := (totalRecords + int64(pageSizeInt) - 1) / int64(pageSizeInt)
+
+	var potatoes []models.Potato
+
+	if err := query.Limit(pageSizeInt).Offset(offset).Find(&potatoes).Error; err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	// Создаем структуру для ответа
 	response := struct {
