@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"potato-module/contracts"
 	"potato-module/models"
-	"strings"
 
 	"github.com/google/uuid"
 )
@@ -24,14 +23,9 @@ func (s *Services) InitCart(w http.ResponseWriter, r *http.Request) {
 
 func (s *Services) RemoveFrom(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	uuid, err := uuid.Parse(id)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
 
 	var cart models.Cart
-	if err := s.DB.First(&cart, uuid).Error; err != nil {
+	if err := s.DB.Where("id = ?", id).First(&cart).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -42,20 +36,21 @@ func (s *Services) RemoveFrom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result string
+	// Удаляем позиции из корзины
+	for _, itemID := range input.Positions {
+		if err := s.DB.Where("id = ?", itemID).Delete(&models.CartPosition{}).Error; err != nil {
+			http.Error(w, "Error deleting position: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	if strings.Contains(cart.Payload, ", "+input.Payload) {
-		result = strings.ReplaceAll(cart.Payload, ", "+input.Payload, "")
-	} else if strings.Contains(cart.Payload, ","+input.Payload) {
-		result = strings.ReplaceAll(cart.Payload, ","+input.Payload, "")
-	} else if strings.Contains(cart.Payload, input.Payload) {
-		result = strings.ReplaceAll(cart.Payload, input.Payload, "")
-	} else {
-		http.Error(w, "product not found"+result, http.StatusBadRequest)
-		return
+		for i, position := range cart.Positions {
+			if position.ID == itemID.ID {
+				cart.Positions = append(cart.Positions[:i], cart.Positions[i+1:]...)
+				break
+			}
+		}
 	}
 
-	cart.Payload = result
 	if err := s.DB.Save(&cart).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -80,12 +75,12 @@ func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for item, _ := range input.Positions {
+	for _, item := range input.Positions {
 		if err := s.DB.Create(&item).Error; err != nil {
 			http.Error(w, "Error creating position: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// cart.Positions += item
+		cart.Positions = append(cart.Positions, item)
 	}
 
 	if err := s.DB.Save(&cart).Error; err != nil {
@@ -106,7 +101,7 @@ func (s *Services) GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cart models.Cart
-	if err := s.DB.First(&cart, uuid).Error; err != nil {
+	if err := s.DB.Preload("CartPositions").First(&cart, uuid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
