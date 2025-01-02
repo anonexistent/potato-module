@@ -11,15 +11,7 @@ import (
 )
 
 func (s *Services) InitCart(w http.ResponseWriter, r *http.Request) {
-	var input contracts.CreateCart
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cart := models.Cart{
-		Payload: input.Payload,
-	}
+	cart := models.Cart{}
 
 	if err := s.DB.Create(&cart).Error; err != nil {
 		http.Error(w, "Error creating cart: "+err.Error(), http.StatusInternalServerError)
@@ -88,7 +80,13 @@ func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cart.Payload += input.Payload
+	for item, _ := range input.Positions {
+		if err := s.DB.Create(&item).Error; err != nil {
+			http.Error(w, "Error creating position: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// cart.Positions += item
+	}
 
 	if err := s.DB.Save(&cart).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

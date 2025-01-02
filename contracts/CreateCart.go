@@ -1,5 +1,9 @@
 package contracts
 
+import (
+	"potato-module/models"
+)
+
 type CreateCart struct {
-	Payload string `json:"payload,omitempty"`
+	Positions []models.CartPosition `json:"positions"`
 }

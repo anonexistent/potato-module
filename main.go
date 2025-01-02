@@ -82,7 +82,7 @@ func main() {
 	}
 
 	// Автоматически мигрировать схему
-	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}, &models.Category{}, &models.Cart{}); err != nil {
+	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}, &models.Category{}, &models.Cart{}, &models.CartPosition{}); err != nil {
 		panic(fmt.Sprintln("Error during migration: %v\n", err))
 	}
 
