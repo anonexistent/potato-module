@@ -82,7 +82,7 @@ func main() {
 	}
 
 	// Автоматически мигрировать схему
-	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}, &models.Category{}); err != nil {
+	if err := db.AutoMigrate(&models.Potato{}, &models.Type{}, &models.Size{}, &models.Category{}, &models.Cart{}); err != nil {
 		panic(fmt.Sprintln("Error during migration: %v\n", err))
 	}
 
@@ -111,7 +111,7 @@ func main() {
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"https://*", "http://*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
@@ -139,6 +139,11 @@ func main() {
 
 	r.Post("/categories/create", ss.CreateCategory)
 	r.Get("/categories/list", ss.GetAllCategories)
+
+	r.Post("/cart/init", ss.InitCart)
+	r.Get("/cart/get", ss.GetCart)
+	r.Patch("/cart/push", ss.PushCart)
+	r.Patch("/cart/removeFrom", ss.RemoveFrom)
 
 	// Start the server
 	log.Println("Starting server on :54870")
