@@ -5,5 +5,5 @@ import (
 )
 
 type CreateCart struct {
-	Positions []models.CartPosition `json:"positions"`
+	Position models.CartPosition `json:"position"`
 }

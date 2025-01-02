@@ -23,31 +23,33 @@ func (s *Services) InitCart(w http.ResponseWriter, r *http.Request) {
 
 func (s *Services) RemoveFrom(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	uuid, err := uuid.Parse(id)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 
 	var cart models.Cart
-	if err := s.DB.Where("id = ?", id).First(&cart).Error; err != nil {
+	if err := s.DB.First(&cart, uuid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	var input contracts.CreateCart
+	var input contracts.PositionIdBody
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Удаляем позиции из корзины
-	for _, itemID := range input.Positions {
-		if err := s.DB.Where("id = ?", itemID).Delete(&models.CartPosition{}).Error; err != nil {
-			http.Error(w, "Error deleting position: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err := s.DB.Where("id = ?", input.ID).Delete(&models.CartPosition{}).Error; err != nil {
+		http.Error(w, "Error deleting position: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		for i, position := range cart.Positions {
-			if position.ID == itemID.ID {
-				cart.Positions = append(cart.Positions[:i], cart.Positions[i+1:]...)
-				break
-			}
+	for i, position := range cart.Positions {
+		if position.ID == input.ID {
+			cart.Positions = append(cart.Positions[:i], cart.Positions[i+1:]...)
+			break
 		}
 	}
 
@@ -62,9 +64,14 @@ func (s *Services) RemoveFrom(w http.ResponseWriter, r *http.Request) {
 
 func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	var cart models.Cart
-	if err := s.DB.Where("id = ?", id).First(&cart).Error; err != nil {
+	if err := s.DB.First(&cart, uuid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -74,13 +81,11 @@ func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	input.Position.CartId = uuid
 
-	for _, item := range input.Positions {
-		if err := s.DB.Create(&item).Error; err != nil {
-			http.Error(w, "Error creating position: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		cart.Positions = append(cart.Positions, item)
+	if err := s.DB.Create(&input.Position).Error; err != nil {
+		http.Error(w, "Error creating position: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	if err := s.DB.Save(&cart).Error; err != nil {
@@ -101,7 +106,7 @@ func (s *Services) GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cart models.Cart
-	if err := s.DB.Preload("CartPositions").First(&cart, uuid).Error; err != nil {
+	if err := s.DB.Preload("Positions").First(&cart, uuid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

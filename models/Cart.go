@@ -6,8 +6,8 @@ import (
 )
 
 type Cart struct {
-	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primaryKey"`
-	Positions []CartPosition `json:"positions"`
+	ID        uuid.UUID       `json:"id" gorm:"type:uuid;primaryKey"`
+	Positions []*CartPosition `json:"positions"`
 }
 
 func (p *Cart) BeforeCreate(tx *gorm.DB) (err error) {

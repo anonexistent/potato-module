@@ -13,9 +13,8 @@ type Potato struct {
 	Rating     float32    `json:"rating"`
 	Categories []Category `json:"category" gorm:"many2many:potato_categoris;"`
 
-	CartPosition []CartPosition
-	Types        []Type `json:"types" gorm:"many2many:potato_types;"`
-	Sizes        []Size `json:"sizes" gorm:"many2many:potato_sizes;"`
+	Types []Type `json:"types" gorm:"many2many:potato_types;"`
+	Sizes []Size `json:"sizes" gorm:"many2many:potato_sizes;"`
 }
 
 func (p *Potato) BeforeCreate(tx *gorm.DB) (err error) {
