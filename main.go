@@ -142,8 +142,8 @@ func main() {
 
 	r.Post("/cart/init", ss.InitCart)
 	r.Get("/cart/get", ss.GetCart)
-	r.Patch("/cart/push", ss.PushCart)
-	r.Patch("/cart/removeFrom", ss.RemoveFrom)
+	r.Post("/cart/push", ss.PushCart)
+	r.Delete("/cart/removeFrom", ss.RemoveFrom)
 
 	// Start the server
 	log.Println("Starting server on :54870")
