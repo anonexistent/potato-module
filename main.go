@@ -128,7 +128,7 @@ func main() {
 
 	// Define routes
 	r.Post("/potatoes/create", ss.CreatePotato)
-	r.Get("/potatoes/{id}", ss.GetPotatoByID)
+	r.Get("/potatoes", ss.GetPotatoByID)
 	r.Get("/potatoes/list", ss.GetAllPotatoes)
 
 	r.Post("/sizes/create", ss.CreateSize)

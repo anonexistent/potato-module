@@ -8,7 +8,7 @@ import (
 	"potato-module/models"
 	"strconv"
 
-	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 )
 
 // CreatePotato handles the creation of a new potato
@@ -59,9 +59,15 @@ func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {
 
 // GetPotatoByID handles fetching a potato by its ID
 func (s *Services) GetPotatoByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := r.URL.Query().Get("id")
+	uuid, err := uuid.Parse(id)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
 	var potato models.Potato
-	if err := s.DB.Preload("Types").Preload("Sizes").First(&potato, id).Error; err != nil {
+	if err := s.DB.Preload("Types").Preload("Sizes").First(&potato, uuid).Error; err != nil {
 		http.Error(w, "Potato not found", http.StatusNotFound)
 		return
 	}
