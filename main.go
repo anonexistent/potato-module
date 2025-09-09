@@ -30,7 +30,7 @@ type Size struct {
 var db *gorm.DB
 
 // old
-func initializeData() {
+func initializeData(database *gorm.DB) {
 	// Инициализация типов картошки
 	types := []models.Type{
 		{Name: "молодая"},
@@ -46,10 +46,10 @@ func initializeData() {
 
 	// Сохранение данных в базе
 	for _, t := range types {
-		db.FirstOrCreate(&t)
+		database.FirstOrCreate(&t)
 	}
 	for _, s := range sizes {
-		db.FirstOrCreate(&s)
+		database.FirstOrCreate(&s)
 	}
 }
 
@@ -100,7 +100,7 @@ func main() {
 	// 		log.Printf("cleared table %s", table)
 	// 	}
 	// }
-	initializeData()
+	initializeData(db)
 
 	// Initialize the router
 	r := chi.NewRouter()
