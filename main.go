@@ -100,7 +100,7 @@ func main() {
 	// 		log.Printf("cleared table %s", table)
 	// 	}
 	// }
-	// initializeData()
+	initializeData()
 
 	// Initialize the router
 	r := chi.NewRouter()
