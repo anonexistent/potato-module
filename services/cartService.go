@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"potato-module/contracts"
 	"potato-module/models"
-
-	"github.com/google/uuid"
+	"strconv"
 )
 
 func (s *Services) InitCart(w http.ResponseWriter, r *http.Request) {
@@ -23,14 +22,14 @@ func (s *Services) InitCart(w http.ResponseWriter, r *http.Request) {
 
 func (s *Services) RemoveFrom(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	uuid, err := uuid.Parse(id)
+	cid, err := strconv.Atoi(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	var cart models.Cart
-	if err := s.DB.First(&cart, uuid).Error; err != nil {
+	if err := s.DB.First(&cart, cid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -64,14 +63,14 @@ func (s *Services) RemoveFrom(w http.ResponseWriter, r *http.Request) {
 
 func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	uuid, err := uuid.Parse(id)
+	cid, err := strconv.Atoi(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var cart models.Cart
-	if err := s.DB.First(&cart, uuid).Error; err != nil {
+	if err := s.DB.First(&cart, cid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -81,7 +80,7 @@ func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	input.Position.CartId = uuid
+	input.Position.CartId = uint(cid)
 
 	if err := s.DB.Create(&input.Position).Error; err != nil {
 		http.Error(w, "Error creating position: "+err.Error(), http.StatusInternalServerError)
@@ -99,14 +98,14 @@ func (s *Services) PushCart(w http.ResponseWriter, r *http.Request) {
 
 func (s *Services) GetCart(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	uuid, err := uuid.Parse(id)
+	cid, err := strconv.Atoi(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	var cart models.Cart
-	if err := s.DB.Preload("Positions").First(&cart, uuid).Error; err != nil {
+	if err := s.DB.Preload("Positions").First(&cart, cid).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

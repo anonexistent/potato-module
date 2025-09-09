@@ -1,12 +1,7 @@
 package models
 
-import (
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-)
-
 type Potato struct {
-	ID         uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey"`
+	ID         uint       `json:"id" gorm:"primaryKey"`
 	Img        string     `json:"img"`
 	Price      uint       `json:"price"`
 	Title      string     `json:"title"`
@@ -15,11 +10,4 @@ type Potato struct {
 
 	Types []Type `json:"types" gorm:"many2many:potato_types;"`
 	Sizes []Size `json:"sizes" gorm:"many2many:potato_sizes;"`
-}
-
-func (p *Potato) BeforeCreate(tx *gorm.DB) (err error) {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
-	}
-	return
 }

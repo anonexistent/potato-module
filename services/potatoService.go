@@ -7,8 +7,6 @@ import (
 	"potato-module/contracts"
 	"potato-module/models"
 	"strconv"
-
-	"github.com/google/uuid"
 )
 
 // CreatePotato handles the creation of a new potato
@@ -60,14 +58,14 @@ func (s *Services) CreatePotato(w http.ResponseWriter, r *http.Request) {
 // GetPotatoByID handles fetching a potato by its ID
 func (s *Services) GetPotatoByID(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	uuid, err := uuid.Parse(id)
+	pid, err := strconv.Atoi(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	var potato models.Potato
-	if err := s.DB.Preload("Types").Preload("Sizes").First(&potato, uuid).Error; err != nil {
+	if err := s.DB.Preload("Types").Preload("Sizes").First(&potato, pid).Error; err != nil {
 		http.Error(w, "Potato not found", http.StatusNotFound)
 		return
 	}

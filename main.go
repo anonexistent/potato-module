@@ -33,15 +33,15 @@ var db *gorm.DB
 func initializeData(database *gorm.DB) {
 	// Инициализация типов картошки
 	types := []models.Type{
-		{Name: "молодая"},
-		{Name: "старая"},
+		{ID: 1, Name: "молодая"},
+		{ID: 2, Name: "старая"},
 	}
 
 	// Инициализация размеров картошки
 	sizes := []Size{
-		{Name: "бэби"},
-		{Name: "медиум"},
-		{Name: "босс"},
+		{ID: 1, Name: "бэби"},
+		{ID: 2, Name: "медиум"},
+		{ID: 3, Name: "босс"},
 	}
 
 	// Сохранение данных в базе
